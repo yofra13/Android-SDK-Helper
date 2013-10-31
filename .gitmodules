@@ -1,0 +1,3 @@
+[submodule "WeemoSDK_Lib"]
+	path = WeemoSDK_Lib
+	url = git@github.com:weemo/Android-SDK.git
