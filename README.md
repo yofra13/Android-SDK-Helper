@@ -4,6 +4,21 @@ This project was made with Eclipse, to be sure of the compatibility of the SDK H
 
 Follow these 5 Step to test Weemo Technologies into a sample application.
 
+### Step 0 - Install the sources
+
+```
+git clone git@github.com:weemo/Android-SDK-Helper.git
+git submodule init
+git submodule update
+```
+
+Later, when you update the sources, use:
+
+```
+git pull
+git submodule update
+```
+
 ### Step 1 - Check Android Developement Tools
 
 Make sure you have Android plug-in installed within Eclipse.
