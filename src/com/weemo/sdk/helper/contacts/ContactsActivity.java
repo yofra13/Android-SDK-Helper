@@ -168,7 +168,7 @@ public class ContactsActivity extends Activity implements ChooseListener {
 		
 		menu.add(R.string.disconnect).setOnMenuItemClickListener(new OnMenuItemClickListener() {
 			@Override public boolean onMenuItemClick(MenuItem item) {
-				Weemo.destroy();
+				Weemo.disconnect();
 				return true;
 			}
 		});

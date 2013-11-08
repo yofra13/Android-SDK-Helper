@@ -59,6 +59,9 @@ public class CallActivity extends Activity {
 	private @Nullable ImageView hangup;
 	private @Nullable ToggleButton hdToggle;
 	
+	// The call
+	private WeemoCall call;
+	
 	// This is the correction for the OrientationEventListener.
 	// It allows portrait devices (like phones) and landscape devices (like tablets)
 	// to have the same orientation result.
@@ -112,11 +115,13 @@ public class CallActivity extends Activity {
 
 		// The call with the given ID must exist before starting this activity
 		// If it is not, we finish the activity
-		final WeemoCall call = weemo.getCall(callId);
+		call = weemo.getCall(callId);
 		if (call == null) {
 			finish();
 			return ;
 		}
+		
+		call.videoStart();
 		
 		setContentView(R.layout.activity_call);
 
@@ -192,7 +197,7 @@ public class CallActivity extends Activity {
 		// Note that we also toggle the videoOutFrame visibility
 		video = (ImageView) findViewById(R.id.video);
 		video.setOnClickListener(new OnClickListener() {
-			boolean video = false;
+			boolean video = true;
 			@Override public void onClick(View v) {
 				video = !video;
 				if (video) {
@@ -248,6 +253,22 @@ public class CallActivity extends Activity {
 
 		// Sets the camera preview dimensions according to whether or not the remote contact has started his video
 		setVideoOutFrameDimensions(call.isReceivingVideo());
+
+		// Register as event listener
+		// We want to listen to events even if we are on the background
+		Weemo.eventBus().register(this);
+	}
+	
+	@Override
+	protected void onDestroy() {
+		// Unregister as event listener
+		Weemo.eventBus().unregister(this);
+
+		call.videoStop();
+		call.setVideoOut(null);
+		call.setVideoIn(null);
+
+		super.onDestroy();
 	}
 
 	/*
@@ -304,9 +325,6 @@ public class CallActivity extends Activity {
 		// This should always be the first statement of onStart
 		Weemo.onActivityStart();
 
-		// Register as event listener
-		Weemo.eventBus().register(this);
-
 		// Start listening for orientation changes
 		if (oel.canDetectOrientation())
 			oel.enable();
@@ -319,9 +337,6 @@ public class CallActivity extends Activity {
 
 	@Override
 	protected void onStop() {
-		// Unregister as event listener
-		Weemo.eventBus().unregister(this);
-
 		// We do not need to listen for orientation change while we are in the background
 		// Beside, not stoping this will generate a leak when the activity is destroyed
 		oel.disable();
@@ -370,7 +385,8 @@ public class CallActivity extends Activity {
 	
 	@Override
 	public void onBackPressed() {
-		// do nothing
+		if (getIntent().getBooleanExtra("canComeBack", false))
+			super.onBackPressed();
 	}
 	
 }

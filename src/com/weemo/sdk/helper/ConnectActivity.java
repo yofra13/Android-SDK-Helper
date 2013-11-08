@@ -62,7 +62,7 @@ public class ConnectActivity extends Activity implements ChooseListener {
 		Weemo.eventBus().register(this);
 
 		// Initialize Weemo, can be called multiple times
-		Weemo.initialize(getString(R.string.weemo_mobileAppId), this);
+		Weemo.initialize(getString(R.string.weemo_appId), this);
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public class ConnectActivity extends Activity implements ChooseListener {
 		// because the user has got out of the application without logging in.
 		// In this case we need to stop the Weemo engine.
 		if (!hasLoggedIn)
-			Weemo.destroy();
+			Weemo.disconnect();
 		
 		super.onDestroy();
 	}
