@@ -57,7 +57,7 @@ public class ConnectedService extends Service {
 	 * Set the background notification
 	 */
 	private void presenceNotification(int icon, String title, String message) {
-		Intent intent = new Intent(this, ContactsActivity.class).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		Intent intent = new Intent(this, ContactsActivity.class).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		Notification n = new NotificationCompat.Builder(this)
@@ -76,7 +76,8 @@ public class ConnectedService extends Service {
 	 */
 	private void normalPresenceNotification() {
 		WeemoEngine weemo = Weemo.instance();
-		assert weemo != null;
+		if (weemo == null)
+			return ;
 		String displayName = weemo.getDisplayName();
 		if (displayName != null)
 			displayName = weemo.getUserId();

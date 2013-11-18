@@ -15,8 +15,7 @@
         <com.weemo.sdk.view.WeemoVideoInFrame
             android:id="@+id/video_in"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/black" >
+            android:layout_height="match_parent" >
 
             <ToggleButton
                 android:id="@+id/hd_toggle"
@@ -32,14 +31,14 @@
             android:id="@+id/video_out"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="top|right"
-            android:background="@android:color/black" >
+            android:layout_gravity="top|right" >
         </com.weemo.sdk.view.WeemoVideoOutPreviewFrame>
     </FrameLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
+        android:background="@android:color/background_light"
         android:orientation="vertical" >
 
         <ImageView

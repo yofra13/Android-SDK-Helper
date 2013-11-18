@@ -27,6 +27,20 @@ public class ContactCheckDialogFragment extends DialogFragment {
 	}
 	
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		// Register as event listener
+		Weemo.eventBus().register(this);
+
+		// Asks weemo engine to do the check
+		// The answer of this check will be provided through a StatusEvent
+		WeemoEngine weemo = Weemo.instance();
+		assert weemo != null;
+		weemo.getStatus(getArguments().getString("contactId"));
+	}
+	
+	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		ProgressDialog dialog = new ProgressDialog(getActivity());
 		dialog.setTitle(getArguments().getString("contactId"));
@@ -35,25 +49,11 @@ public class ContactCheckDialogFragment extends DialogFragment {
 	}
 
 	@Override
-	public void onStart() {
-		super.onStart();
-
-		// Register as event listener
-		Weemo.eventBus().register(this);
-		
-		// Asks weemo engine to do the check
-		// The answer of this check will be provided through a StatusEvent
-		WeemoEngine weemo = Weemo.instance();
-		assert weemo != null;
-		weemo.getStatus(getArguments().getString("contactId"));
-	}
-
-	@Override
-	public void onStop() {
+	public void onDestroy() {
 		// Unregister as event listener
 		Weemo.eventBus().unregister(this);
 
-		super.onStop();
+		super.onDestroy();
 	}
 	
 	/*

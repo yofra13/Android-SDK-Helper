@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.weemo.sdk.Weemo;
@@ -26,6 +25,14 @@ public class ConnectActivity extends Activity implements ChooseListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		String appId = getString(R.string.weemo_appId);
+		
+		if (appId.contains(" ")) {
+			Toast.makeText(this, "Please enter your AppID in res/values/weemo_conf.xml", Toast.LENGTH_LONG).show();
+			finish();
+			return ;
+		}
 
 		// Checks if Weemo is already initialized and authenticated.
 		// If it is, it is probably because the user clicked on the service notification.
@@ -49,35 +56,19 @@ public class ConnectActivity extends Activity implements ChooseListener {
 			dialog.setCancelable(false);
 			dialog.show(getFragmentManager(), "dialog");
 		}
-	}
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-
-		// This should always be the first statement of onStart
-		Weemo.onActivityStart();
-
+		
 		// Register the activity as event listener
 		Weemo.eventBus().register(this);
 
 		// Initialize Weemo, can be called multiple times
-		Weemo.initialize(getString(R.string.weemo_appId), this);
+		Weemo.initialize(appId, this);
 	}
-
+	
 	@Override
-	protected void onStop() {
+	protected void onDestroy() {
 		// Unregister as event listener
 		Weemo.eventBus().unregister(this);
 
-		// This should always be the last statement of onStop
-		Weemo.onActivityStop();
-
-		super.onStop();
-	}
-
-	@Override
-	protected void onDestroy() {
 		// If this activity is destroyed with hasLoggedIn is true,
 		// this means it is destroyed after CallActivity being displayed.
 		// However, if hasLoggedIn is false, it means that the activity is destroyed
@@ -130,11 +121,15 @@ public class ConnectActivity extends Activity implements ChooseListener {
 		
 		// If there is no error, everything went normal, connection succeeded.
 		// In this case, we stop the loading dialog and show login fragment
-		Log.i("=====", "LAUNCHING LOGIN");
 		DialogFragment dialog = (DialogFragment) getFragmentManager().findFragmentByTag("dialog");
 		if (dialog != null)
 			dialog.dismiss();
-        getFragmentManager().beginTransaction().replace(android.R.id.content, ChooseFragment.newInstance(getString(R.string.log_in))).commit();
+		
+		ChooseFragment chooseFragment = ChooseFragment.newInstance(getString(R.string.log_in));
+		if (getResources().getBoolean(R.bool.isTablet))
+			chooseFragment.show(getFragmentManager(), "choose");
+		else
+			getFragmentManager().beginTransaction().replace(android.R.id.content, ChooseFragment.newInstance(getString(R.string.log_in))).commit();
 	}
 
 	/*

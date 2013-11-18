@@ -13,6 +13,7 @@ import com.weemo.sdk.WeemoEngine;
 import com.weemo.sdk.event.WeemoEventListener;
 import com.weemo.sdk.event.call.CallStatusChangedEvent;
 import com.weemo.sdk.helper.R;
+import com.weemo.sdk.helper.contacts.ContactsActivity;
 
 /*
  * This activity is shown when a call is incoming.
@@ -43,8 +44,9 @@ public class IncomingActivity extends Activity {
 					call.resume();
 					
 					startActivity(
-						new Intent(IncomingActivity.this, CallActivity.class)
-							.putExtra("callId", call.getCallId())
+						new Intent(IncomingActivity.this, ContactsActivity.class)
+						.putExtra("pickup", true)
+						.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP)
 					);
 				}
 				finish();
@@ -63,28 +65,17 @@ public class IncomingActivity extends Activity {
 				finish();
 			}
 		});
-	}
-	
-	@Override
-	protected void onStart() {
-		super.onStart();
-
-		// This should always be the first statement of onStart
-		Weemo.onActivityStart();
-
+		
 		// Register as event listener
 		Weemo.eventBus().register(this);
 	}
 
 	@Override
-	protected void onStop() {
+	protected void onDestroy() {
 		// Unregister as event listener
 		Weemo.eventBus().unregister(this);
 
-		// This should always be the last statement of onStop
-		Weemo.onActivityStop();
-
-		super.onStop();
+		super.onDestroy();
 	}
 
 	/*

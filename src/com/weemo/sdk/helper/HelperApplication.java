@@ -59,7 +59,7 @@ public class HelperApplication extends Application {
 	 * This is a Watchdog that will detect ANRs
 	 * More intel in https://github.com/SalomonBrys/ANR-WatchDog
 	 */
-	private ANRWatchDog watchDog = new ANRWatchDog(20000);
+	private ANRWatchDog watchDog = new ANRWatchDog();
 
 	/*
 	 * Because we are using NativeCrashHandler in onCreate (which uses native code),

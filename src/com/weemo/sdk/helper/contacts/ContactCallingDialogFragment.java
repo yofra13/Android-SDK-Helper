@@ -5,7 +5,6 @@ import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.content.Intent;
 import android.os.Bundle;
 
 import com.weemo.sdk.Weemo;
@@ -15,7 +14,6 @@ import com.weemo.sdk.WeemoEngine;
 import com.weemo.sdk.event.WeemoEventListener;
 import com.weemo.sdk.event.call.CallStatusChangedEvent;
 import com.weemo.sdk.helper.R;
-import com.weemo.sdk.helper.call.CallActivity;
 
 /*
  * This fragments displays a loading dialog while calling a remote contact.
@@ -29,6 +27,14 @@ public class ContactCallingDialogFragment extends DialogFragment {
 		args.putInt("callId", callId);
 		fragment.setArguments(args);
 		return fragment;
+	}
+	
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		// Register as event listener
+		Weemo.eventBus().register(this);
 	}
 	
 	@Override
@@ -49,19 +55,11 @@ public class ContactCallingDialogFragment extends DialogFragment {
 	}
 
 	@Override
-	public void onStart() {
-		super.onStart();
-
-		// Register as event listener
-		Weemo.eventBus().register(this);
-	}
-
-	@Override
-	public void onStop() {
+	public void onDestroy() {
 		// Unregister as event listener
 		Weemo.eventBus().unregister(this);
 
-		super.onStop();
+		super.onDestroy();
 	}
 	
 	/*
@@ -85,10 +83,7 @@ public class ContactCallingDialogFragment extends DialogFragment {
 		// If the call is now ACTIVE, it is now taking place
 		// we therefore start the CallActivity
 		else if (e.getCallStatus() == CallStatus.ACTIVE) {
-			startActivity(
-				new Intent(getActivity(), CallActivity.class)
-					.putExtra("callId", e.getCall().getCallId())
-			);
+			((ContactsActivity)getActivity()).startCallWindow(e.getCall());
 			dismiss();
 		}
 	}

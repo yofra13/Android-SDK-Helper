@@ -52,8 +52,8 @@ public class AskDisplayNameDialogFragment extends DialogFragment {
 			((ContactsActivity) getActivity()).setDisplayName(value);
 			}
 		});
-
-		alert.setNegativeButton(android.R.string.cancel, null);
+		
+		setCancelable(false);
 
 		return alert.create();
 	}

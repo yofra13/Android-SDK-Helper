@@ -1,12 +1,14 @@
 package com.weemo.sdk.helper.contacts;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MenuItem.OnMenuItemClickListener;
+import android.view.View;
 import android.widget.Toast;
 
 import com.weemo.sdk.Weemo;
@@ -21,20 +23,25 @@ import com.weemo.sdk.helper.ChooseFragment.ChooseListener;
 import com.weemo.sdk.helper.ConnectedService;
 import com.weemo.sdk.helper.R;
 import com.weemo.sdk.helper.call.CallActivity;
+import com.weemo.sdk.helper.call.CallFragment;
 
 /*
  * This is the main activity when the user is connected.
  * From this activity, the user can:
  *  - Poll for the status of a remote contact
  *  - Call a remote contact.
- *  
+ *
+ * When a call starts, this activity will :
+ *  - Start the CallActivity if we are using a phone or a small tablet
+ *  - Display the CallFragment and handle the call itself if we are using a 10 inch or bigger tablet
+ *
  * It is also that activity that starts and stops the ConnectedService.
  * This service will run as long as the user is connected. 
  */
 public class ContactsActivity extends Activity implements ChooseListener {
 
 	private static final String LOGTAG = "ContactsActivity";
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -43,12 +50,14 @@ public class ContactsActivity extends Activity implements ChooseListener {
 		// Therefore, we launch the ConnectedService
 		startService(new Intent(this, ConnectedService.class));
 		
-		if(savedInstanceState == null) {
+		setContentView(R.layout.activity_contacts);
+
+		if (savedInstanceState == null) {
 			// Ensure that Weemo is initialized
 			WeemoEngine weemo = Weemo.instance();
 			if (weemo == null) {
 				Log.e(LOGTAG, "ContactsActivity was started while Weemo is not initialized");
-				finish();
+				stopService(new Intent(this, ConnectedService.class));
 				return ;
 			}
 			
@@ -68,11 +77,11 @@ public class ContactsActivity extends Activity implements ChooseListener {
 			// If display name was not set, we display a temporary one that is the user ID
 			if (askForDisplayName)
 				displayName = uid;
-
+			
 			// Display the contact fragment
 			getFragmentManager()
 				.beginTransaction()
-				.add(android.R.id.content, ChooseFragment.newInstance(getString(R.string.check), displayName))
+				.add(R.id.contact_list, ChooseFragment.newInstance(getString(R.string.check), displayName))
 				.commit();
 		
 			// If we need to ask for the display name, shows the apropriate popup
@@ -82,9 +91,85 @@ public class ContactsActivity extends Activity implements ChooseListener {
 					defaultName = ChooseFragment.ACCOUNTS.get(uid);
 	            AskDisplayNameDialogFragment.newInstance(defaultName).show(getFragmentManager(), null);
 			}
+			
+			// If there is a call currently going on,
+			// it's probably because the user has clicked in the notification after going on its device home.
+			// In which case we redirect him to the CallActivity
+			WeemoCall call = weemo.getCurrentCall();
+			if (call != null || getIntent().getBooleanExtra("pickup", false))
+				startCallWindow(call);
 		}
 		
 		setTitleFromDisplayName();
+
+		// Register as event listener
+		Weemo.eventBus().register(this);
+	}
+	
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+
+		WeemoEngine weemo = Weemo.instance();
+		if (weemo == null) {
+			finish();
+			return ;
+		}
+
+		// If there is a call currently going on,
+		// it's probably because the user has clicked in the notification after going on its device home.
+		// In which case we redirect him to the CallActivity
+		WeemoCall call = weemo.getCurrentCall();
+		if (call != null || intent.getBooleanExtra("pickup", false))
+			startCallWindow(call);
+	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		WeemoEngine weemo = Weemo.instance();
+		assert weemo != null;
+
+		// Enables or disable the call button according to weemo.canCreateCall()
+		((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setEnabled(weemo.canCreateCall());
+
+		// If we were in background mode, we got back to foreground
+		if (weemo.isInBackground())
+			weemo.goToForeground();
+	}
+
+	@Override
+	protected void onStop() {
+		WeemoEngine weemo = Weemo.instance();
+
+		// If there is no call going on, then we go to background when this activity stops,
+		// which allows the Weemo engine to save battery
+		if (weemo != null && weemo.getCurrentCall() == null)
+			weemo.goToBackground();
+
+		super.onStop();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		// Unregister as event listener
+		Weemo.eventBus().unregister(this);
+
+		super.onDestroy();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		
+		menu.add(R.string.disconnect).setOnMenuItemClickListener(new OnMenuItemClickListener() {
+			@Override public boolean onMenuItemClick(MenuItem item) {
+				Weemo.disconnect();
+				return true;
+			}
+		});
+		
+		return super.onCreateOptionsMenu(menu);
 	}
 	
 	/*
@@ -111,6 +196,26 @@ public class ContactsActivity extends Activity implements ChooseListener {
 			setTitle("{" + uid + "}");
 		}
 	}
+
+	/*
+	 * Displays the call window.
+	 * If we are using a 10 inch or bigger tablet, shows the Call fragment in this activity
+	 * Otherwise, shows the activity that displays the call window fullscreen.
+	 */
+	void startCallWindow(WeemoCall call) {
+		View display = findViewById(R.id.contact_display);
+		if (display != null) {
+			getFragmentManager()
+				.beginTransaction()
+				.replace(R.id.contact_display, CallFragment.newInstance(call.getCallId(), false))
+				.commit();
+		}
+		else
+			startActivity(
+				new Intent(this, CallActivity.class)
+					.putExtra("callId", call.getCallId())
+			);
+	}
 	
 	/*
 	 * Set the display name
@@ -123,57 +228,6 @@ public class ContactsActivity extends Activity implements ChooseListener {
 		// Tell the service the user has changed display name, so the service can update the notification
 		startService(new Intent(this, ConnectedService.class));
 		setTitleFromDisplayName();
-	}
-	
-	@Override
-	protected void onStart() {
-		super.onStart();
-
-		// This should always be the first statement of onStart
-		Weemo.onActivityStart();
-
-		// Register as event listener
-		Weemo.eventBus().register(this);
-		
-		// Enables or disable the call button according to weemo.canCreateCall()
-		WeemoEngine weemo = Weemo.instance();
-		assert weemo != null;
-		((ChooseFragment) getFragmentManager().findFragmentById(android.R.id.content)).setEnabled(weemo.canCreateCall());
-
-		// If there is a call currently going on,
-		// it's probably because the user has clicked in the notification after going on its device home.
-		// In which case we redirect him to the CallActivity
-		WeemoCall call = weemo.getCurrentCall();
-		if (call != null) {
-			startActivity(
-				new Intent(this, CallActivity.class)
-					.putExtra("callId", call.getCallId())
-			);
-		}
-	}
-
-	@Override
-	protected void onStop() {
-		// Unregister as event listener
-		Weemo.eventBus().unregister(this);
-
-		// This should always be the last statement of onStop
-		Weemo.onActivityStop();
-
-		super.onStop();
-	}
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		
-		menu.add(R.string.disconnect).setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			@Override public boolean onMenuItemClick(MenuItem item) {
-				Weemo.disconnect();
-				return true;
-			}
-		});
-		
-		return super.onCreateOptionsMenu(menu);
 	}
 
 	/*
@@ -192,7 +246,7 @@ public class ContactsActivity extends Activity implements ChooseListener {
 			// This is a loss of network. We cannot create call, but the network should be back anytime soon.
 			// We disable the call button.
 			case NETWORK_LOST:
-				((ChooseFragment) getFragmentManager().findFragmentById(android.R.id.content)).setEnabled(false);
+				((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setEnabled(false);
 				break;
 				
 			// This is either a system error or the Weemo engine was destroyed (by the user when he clicks disconnect)
@@ -209,7 +263,7 @@ public class ContactsActivity extends Activity implements ChooseListener {
 
 		// If there is no error, we can create call
 		// We enable the call button.
-		((ChooseFragment) getFragmentManager().findFragmentById(android.R.id.content)).setEnabled(true);
+		((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setEnabled(true);
 	}
 	
 	/*
@@ -228,5 +282,29 @@ public class ContactsActivity extends Activity implements ChooseListener {
 			dialog.setCancelable(false);
 			dialog.show(getFragmentManager(), null);
 		}
+		
+		// If a call has ended and we are in tablet mode, we need to remove the call window fragment.
+		if (e.getCallStatus() == CallStatus.ENDED) {
+			View display = findViewById(R.id.contact_display);
+			if (display != null) {
+				Fragment fragment = getFragmentManager().findFragmentById(R.id.contact_display);
+				if (fragment != null)
+				getFragmentManager().beginTransaction().remove(fragment)
+				.commit();
+			}
+		}
+	}
+	
+	/*
+	 * We only allow going back if there are no calls going on.
+	 * That way, if we are in a tablet, the call fragment will never be destroyed during a call.
+	 * Note that it could, but destroying the call fragment would stop the video out.
+	 */
+	@Override
+	public void onBackPressed() {
+		WeemoEngine weemo = Weemo.instance();
+		assert weemo != null;
+		if (weemo.getCurrentCall() == null)
+			super.onBackPressed();
 	}
 }

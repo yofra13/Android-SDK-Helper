@@ -30,6 +30,14 @@ public class ContactCallDialogFragment extends DialogFragment {
 	}
 	
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		// Register as event listener
+		Weemo.eventBus().register(this);
+	}
+	
+	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
 		dialog.setTitle(getArguments().getString("contactId"));
@@ -47,19 +55,11 @@ public class ContactCallDialogFragment extends DialogFragment {
 	}
 
 	@Override
-	public void onStart() {
-		super.onStart();
-
-		// Register as event listener
-		Weemo.eventBus().register(this);
-	}
-
-	@Override
-	public void onStop() {
+	public void onDestroy() {
 		// Unregister as event listener
 		Weemo.eventBus().unregister(this);
 
-		super.onStop();
+		super.onDestroy();
 	}
 
 	/*

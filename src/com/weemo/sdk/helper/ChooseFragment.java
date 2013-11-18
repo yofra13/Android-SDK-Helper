@@ -7,8 +7,10 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
-import android.app.Fragment;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,7 +31,7 @@ import android.widget.TextView;
  * It is used  multiple times in this project
  * This is a simple util and does not contain Weemo SDK specific code
  */
-public class ChooseFragment extends Fragment {
+public class ChooseFragment extends DialogFragment {
 
 	public static ChooseFragment newInstance(String buttonText, @CheckForNull String removeID) {
 		ChooseFragment fragment = new ChooseFragment();
@@ -73,7 +75,20 @@ public class ChooseFragment extends Fragment {
 		if (removeID != null)
 			accounts.remove(removeID);
 	}
+	
+	@Override
+	public Dialog onCreateDialog(Bundle savedInstanceState) {
+		Dialog dialog = super.onCreateDialog(savedInstanceState);
+		dialog.setCanceledOnTouchOutside(false);
+		return dialog;
+	}
 
+	@Override
+	public void onCancel(DialogInterface dialog) {
+		super.onCancel(dialog);
+		getActivity().finish();
+	}
+	
 	@Override
 	public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View root = inflater.inflate(R.layout.fragment_choose, container, false);
