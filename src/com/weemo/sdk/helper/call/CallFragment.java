@@ -1,5 +1,6 @@
 package com.weemo.sdk.helper.call;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 import android.animation.ObjectAnimator;
@@ -66,7 +67,7 @@ public class CallFragment extends Fragment {
 	private @Nullable ToggleButton hdToggle;
 	
 	// The call
-	private WeemoCall call;
+	private @Nullable WeemoCall call;
 	
 	// This is the correction for the OrientationEventListener.
 	// It allows portrait devices (like phones) and landscape devices (like tablets)
@@ -81,7 +82,7 @@ public class CallFragment extends Fragment {
 	private @Nullable AudioManager audioManager;
 
 	// Used to rotate UI elements according to device orientation
-	private @Nullable OrientationEventListener oel;
+	private @CheckForNull OrientationEventListener oel;
 	
 	// Used to receive Intent.ACTION_HEADSET_PLUG, which is when the headset is (un)plugged
 	private @Nullable BroadcastReceiver br;
@@ -98,9 +99,9 @@ public class CallFragment extends Fragment {
 
 		WeemoEngine weemo = Weemo.instance();
 		// This check should has been done by the activity
+		int callId = getArguments().getInt("callId");
 		assert weemo != null;
-		
-		call = weemo.getCall(getArguments().getInt("callId"));
+		call = weemo.getCall(callId);
 		
 		// Register as event listener
 		Weemo.eventBus().register(this);
@@ -108,39 +109,43 @@ public class CallFragment extends Fragment {
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View root = inflater.inflate(R.layout.fragment_call, container, false);
+		View root = inflater.inflate(R.layout.weemo_fragment_call, container, false);
 
+		boolean locked = getArguments().getBoolean("locked");
+		
 		// Get the OUT frame from the inflated view and set the call to use it
 		videoOutFrame = (WeemoVideoOutPreviewFrame) root.findViewById(R.id.video_out);
-		videoOutFrame.setUseDeviceOrientation(getArguments().getBoolean("locked"));
+		videoOutFrame.setUseDeviceOrientation(locked);
 		call.setVideoOut(videoOutFrame);
 
 		// Get the IN frame from the inflated view and set the call to use it
 		// We set its display to follow device orientation because we have blocked the device rotation
 		videoInFrame = (WeemoVideoInFrame) root.findViewById(R.id.video_in);
-		videoInFrame.setDisplayFollowDeviceOrientation(getArguments().getBoolean("locked"));
+		videoInFrame.setDisplayFollowDeviceOrientation(locked);
 		call.setVideoIn(videoInFrame);
 
-		// This will call setOrientation each time the device orientation have changed
-		// This allows us to display the control ui buttons in the correct orientation
-		oel = new OrientationEventListener(getActivity(), SensorManager.SENSOR_DELAY_NORMAL) {
-			int lastOrientation = -1;
-			@Override public void onOrientationChanged(int orientation) {
-				if (orientation > 45 && orientation <= 135)
-					orientation = 270;
-				else if (orientation > 135 && orientation <= 225)
-					orientation = 180;
-				else if (orientation > 225 && orientation <= 315)
-					orientation = 90;
-				else if (orientation > 315 || orientation <= 45)
-					orientation = 0;
-				orientation = (orientation + 360 - correction) % 360;
-				if (lastOrientation != orientation) {
-					setOrientation(orientation);
-					lastOrientation = orientation;
+		if (locked) {
+			// This will call setOrientation each time the device orientation have changed
+			// This allows us to display the control ui buttons in the correct orientation
+			oel = new OrientationEventListener(getActivity(), SensorManager.SENSOR_DELAY_NORMAL) {
+				int lastOrientation = -1;
+				@Override public void onOrientationChanged(int orientation) {
+					if (orientation > 45 && orientation <= 135)
+						orientation = 270;
+					else if (orientation > 135 && orientation <= 225)
+						orientation = 180;
+					else if (orientation > 225 && orientation <= 315)
+						orientation = 90;
+					else if (orientation > 315 || orientation <= 45)
+						orientation = 0;
+					orientation = (orientation + 360 - correction) % 360;
+					if (lastOrientation != orientation) {
+						setOrientation(orientation);
+						lastOrientation = orientation;
+					}
 				}
-			}
-		};
+			};
+		}
 		
 		// Simple brodcast receiver that will call setSpeakerphoneOn when receiving an intent
 		// It will be registered for Intent.ACTION_HEADSET_PLUG intents
@@ -166,11 +171,11 @@ public class CallFragment extends Fragment {
 				mute = !mute;
 				if (mute) {
 					call.audioMute();
-					muteOut.setImageResource(R.drawable.call_device_access_mic_muted);
+					muteOut.setImageResource(R.drawable.weemo_mic_muted);
 				}
 				else {
 					call.audioUnMute();
-					muteOut.setImageResource(R.drawable.call_device_access_mic_on);
+					muteOut.setImageResource(R.drawable.weemo_mic_on);
 				}
 			}
 		});
@@ -179,15 +184,17 @@ public class CallFragment extends Fragment {
 		// Note that we also toggle the videoOutFrame visibility
 		video = (ImageView) root.findViewById(R.id.video);
 		video.setOnClickListener(new OnClickListener() {
-			boolean video = true;
+			boolean videoRunning = true;
 			@Override public void onClick(View v) {
-				video = !video;
-				if (video) {
+				videoRunning = !videoRunning;
+				if (videoRunning) {
+					video.setImageResource(R.drawable.weemo_video_on);
 					videoOutFrame.setVisibility(View.VISIBLE);
 					call.videoStart();
 					videoToggle.setVisibility(View.VISIBLE);
 				}
 				else {
+					video.setImageResource(R.drawable.weemo_video_off);
 					videoOutFrame.setVisibility(View.GONE);
 					call.videoStop();
 					videoToggle.setVisibility(View.GONE);
@@ -252,7 +259,7 @@ public class CallFragment extends Fragment {
 	 */
 	private void setSpeakerphoneOn(boolean on) {
 		audioManager.setSpeakerphoneOn(on);
-		toggleIn.setImageResource(on ? R.drawable.call_device_access_volume_on : R.drawable.call_device_access_volume_muted);
+		toggleIn.setImageResource(on ? R.drawable.weemo_volume_on : R.drawable.weemo_volume_muted);
 		isSpeakerphoneOn = on;
 	}
 
@@ -308,7 +315,7 @@ public class CallFragment extends Fragment {
 		super.onStart();
 
 		// Start listening for orientation changes
-		if (oel.canDetectOrientation())
+		if (oel != null && oel.canDetectOrientation())
 			oel.enable();
 		
 		// Register the BrodcastReceiver to detect headset connection change
@@ -321,7 +328,8 @@ public class CallFragment extends Fragment {
 	public void onStop() {
 		// We do not need to listen for orientation change while we are in the background
 		// Beside, not stoping this will generate a leak when the fragment is destroyed
-		oel.disable();
+		if (oel != null)
+			oel.disable();
 
 		// Same as the line above
 		getActivity().unregisterReceiver(br);

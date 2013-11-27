@@ -1,5 +1,7 @@
 package com.weemo.sdk.helper.call;
 
+import javax.annotation.Nullable;
+
 import android.app.Activity;
 import android.os.Bundle;
 
@@ -21,7 +23,7 @@ import com.weemo.sdk.event.call.CallStatusChangedEvent;
 public class CallActivity extends Activity {
 
 	// The call
-	private WeemoCall call;
+	private @Nullable WeemoCall call;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -70,10 +72,12 @@ public class CallActivity extends Activity {
 		Weemo.eventBus().unregister(this);
 
 		// When we leave this activity, we stop the video.
-		call.videoStop();
-		call.setVideoOut(null);
-		call.setVideoIn(null);
-
+		if (call != null) {
+			call.videoStop();
+			call.setVideoOut(null);
+			call.setVideoIn(null);
+		}
+		
 		super.onDestroy();
 	}
 

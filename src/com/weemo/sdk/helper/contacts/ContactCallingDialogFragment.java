@@ -83,7 +83,7 @@ public class ContactCallingDialogFragment extends DialogFragment {
 		// If the call is now ACTIVE, it is now taking place
 		// we therefore start the CallActivity
 		else if (e.getCallStatus() == CallStatus.ACTIVE) {
-			((ContactsActivity)getActivity()).startCallWindow(e.getCall());
+			((ContactsActivity)getActivity()).startCallWindow(e.getCall().getCallId());
 			dismiss();
 		}
 	}

@@ -49,7 +49,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/content_description_mute_sound"
             android:padding="15dp"
-            android:src="@drawable/call_device_access_volume_on" />
+            android:src="@drawable/weemo_volume_on" />
 
         <ImageView
             android:id="@+id/mute_out"
@@ -59,7 +59,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/content_description_mute_mic"
             android:padding="15dp"
-            android:src="@drawable/call_device_access_mic_on" />
+            android:src="@drawable/weemo_mic_on" />
 
         <ImageView
             android:id="@+id/video"
@@ -69,7 +69,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/content_description_video"
             android:padding="15dp"
-            android:src="@drawable/call_device_access_video_on" />
+            android:src="@drawable/weemo_video_on" />
 
         <ImageView
             android:id="@+id/video_toggle"
@@ -79,7 +79,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/content_description_video_toggle"
             android:padding="15dp"
-            android:src="@drawable/call_device_access_switch_video" />
+            android:src="@drawable/weemo_switch_video" />
 
         <ImageView
             android:id="@+id/hangup"
@@ -89,7 +89,7 @@
             android:layout_weight="1"
             android:contentDescription="@string/content_description_hangup"
             android:padding="15dp"
-            android:src="@drawable/call_device_access_end_call" />
+            android:src="@drawable/weemo_end_call" />
     </LinearLayout>
 
 </LinearLayout>

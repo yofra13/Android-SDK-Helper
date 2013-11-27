@@ -46,10 +46,6 @@ public class ContactsActivity extends Activity implements ChooseListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// This activity can only be launched if the user is connected
-		// Therefore, we launch the ConnectedService
-		startService(new Intent(this, ConnectedService.class));
-		
 		setContentView(R.layout.activity_contacts);
 
 		if (savedInstanceState == null) {
@@ -96,8 +92,17 @@ public class ContactsActivity extends Activity implements ChooseListener {
 			// it's probably because the user has clicked in the notification after going on its device home.
 			// In which case we redirect him to the CallActivity
 			WeemoCall call = weemo.getCurrentCall();
-			if (call != null || getIntent().getBooleanExtra("pickup", false))
-				startCallWindow(call);
+			if (call != null)
+				startCallWindow(call.getCallId());
+			else if (getIntent().getBooleanExtra("pickup", false)) {
+				int callId = getIntent().getIntExtra("callId", -1);
+				if (callId != -1)
+					startCallWindow(callId);
+			}
+			else
+				// This activity can only be launched if the user is connected
+				// Therefore, we launch the ConnectedService
+				startService(new Intent(this, ConnectedService.class));
 		}
 		
 		setTitleFromDisplayName();
@@ -120,8 +125,13 @@ public class ContactsActivity extends Activity implements ChooseListener {
 		// it's probably because the user has clicked in the notification after going on its device home.
 		// In which case we redirect him to the CallActivity
 		WeemoCall call = weemo.getCurrentCall();
-		if (call != null || intent.getBooleanExtra("pickup", false))
-			startCallWindow(call);
+		if (call != null)
+			startCallWindow(call.getCallId());
+		if (intent.getBooleanExtra("pickup", false)) {
+			int callId = intent.getIntExtra("callId", -1);
+			if (callId != -1)
+				startCallWindow(callId);
+		}
 	}
 	
 	@Override
@@ -131,8 +141,9 @@ public class ContactsActivity extends Activity implements ChooseListener {
 		WeemoEngine weemo = Weemo.instance();
 		assert weemo != null;
 
-		// Enables or disable the call button according to weemo.canCreateCall()
-		((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setEnabled(weemo.canCreateCall());
+		if (weemo.getCurrentCall() == null)
+			// Enables or disable the call button according to weemo.canCreateCall()
+			((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setEnabled(weemo.canCreateCall());
 
 		// If we were in background mode, we got back to foreground
 		if (weemo.isInBackground())
@@ -202,18 +213,19 @@ public class ContactsActivity extends Activity implements ChooseListener {
 	 * If we are using a 10 inch or bigger tablet, shows the Call fragment in this activity
 	 * Otherwise, shows the activity that displays the call window fullscreen.
 	 */
-	void startCallWindow(WeemoCall call) {
+	void startCallWindow(int callId) {
 		View display = findViewById(R.id.contact_display);
+		((ChooseFragment)(getFragmentManager().findFragmentById(R.id.contact_list))).setEnabled(false);
 		if (display != null) {
 			getFragmentManager()
 				.beginTransaction()
-				.replace(R.id.contact_display, CallFragment.newInstance(call.getCallId(), false))
+				.replace(R.id.contact_display, CallFragment.newInstance(callId, false))
 				.commit();
 		}
 		else
 			startActivity(
 				new Intent(this, CallActivity.class)
-					.putExtra("callId", call.getCallId())
+					.putExtra("callId", callId)
 			);
 	}
 	
@@ -261,9 +273,12 @@ public class ContactsActivity extends Activity implements ChooseListener {
 			return ;
 		}
 
-		// If there is no error, we can create call
-		// We enable the call button.
-		((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setEnabled(true);
+		WeemoEngine weemo = Weemo.instance();
+		assert weemo != null;
+		if (weemo.getCurrentCall() == null)
+			// If there is no error, we can create call
+			// We enable the call button.
+			((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setEnabled(true);
 	}
 	
 	/*
@@ -285,6 +300,7 @@ public class ContactsActivity extends Activity implements ChooseListener {
 		
 		// If a call has ended and we are in tablet mode, we need to remove the call window fragment.
 		if (e.getCallStatus() == CallStatus.ENDED) {
+			((ChooseFragment)(getFragmentManager().findFragmentById(R.id.contact_list))).setEnabled(true);
 			View display = findViewById(R.id.contact_display);
 			if (display != null) {
 				Fragment fragment = getFragmentManager().findFragmentById(R.id.contact_display);

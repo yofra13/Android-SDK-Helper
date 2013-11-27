@@ -110,7 +110,7 @@ public class ConnectedService extends Service {
 		Weemo.eventBus().register(this);
 		
 		try {
-			AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.ring);
+			AssetFileDescriptor afd = getResources().openRawResourceFd(R.raw.weemo_ring);
 			player = new MediaPlayer();
 			player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
 			player.setAudioStreamType(AudioManager.STREAM_RING);

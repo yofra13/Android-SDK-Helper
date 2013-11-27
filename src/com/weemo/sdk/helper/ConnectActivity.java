@@ -25,7 +25,7 @@ public class ConnectActivity extends Activity implements ChooseListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		String appId = getString(R.string.weemo_appId);
 		
 		if (appId.contains(" ")) {

@@ -141,6 +141,11 @@ public class ChooseFragment extends DialogFragment {
 	
 	public void setEnabled(boolean enabled) {
 		go.setEnabled(enabled);
+
+		input.setEnabled(enabled);
+		input.setFocusable(enabled);
+		if (enabled)
+			input.setFocusableInTouchMode(enabled);
 	}
 	
 }

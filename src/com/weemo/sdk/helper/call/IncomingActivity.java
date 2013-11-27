@@ -27,7 +27,7 @@ public class IncomingActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setContentView(R.layout.activity_incoming);
+		setContentView(R.layout.weemo_activity_incoming);
 		
 		setFinishOnTouchOutside(false);
 
@@ -38,7 +38,7 @@ public class IncomingActivity extends Activity {
 				// get the call by its id (provided to the activity in the intent by the service)
 				WeemoEngine weemo = Weemo.instance();
 				assert weemo != null;
-				WeemoCall call = weemo.getCall(getIntent().getIntExtra("callId", 0));
+				WeemoCall call = weemo.getCall(getIntent().getIntExtra("callId", -1));
 				if (call != null) {
 					// Accepts the call
 					call.resume();
@@ -46,6 +46,7 @@ public class IncomingActivity extends Activity {
 					startActivity(
 						new Intent(IncomingActivity.this, ContactsActivity.class)
 						.putExtra("pickup", true)
+						.putExtra("callId", call.getCallId())
 						.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP)
 					);
 				}
@@ -58,7 +59,7 @@ public class IncomingActivity extends Activity {
 				// get the call by its id (provided to the activity in the intent by the service)
 				WeemoEngine weemo = Weemo.instance();
 				assert weemo != null;
-				WeemoCall call = weemo.getCall(getIntent().getIntExtra("callId", 0));
+				WeemoCall call = weemo.getCall(getIntent().getIntExtra("callId", -1));
 				if (call != null)
 					// Rejects the call
 					call.hangup();
