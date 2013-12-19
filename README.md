@@ -1,8 +1,12 @@
-### Overview
+## Overview
 
 This project was made with Eclipse, to be sure of the compatibility of the SDK Helper we highly recommand to use this IDE.   
 
 Follow these 5 Step to test Weemo Technologies into a sample application.
+
+
+## Run the code
+
 
 ### Step 0 - Install the sources
 
@@ -18,6 +22,7 @@ Later, when you update the sources, use:
 git pull
 git submodule update
 ```
+
 
 ### Step 1 - Check Android Developement Tools
 
@@ -50,6 +55,7 @@ Import the Helper project in Eclipse as an "Existing Project"
 
 </p>
 
+
 ### Step 4 -  Configure your mobileAppId 
 
 To configure you mobileWebId regarding the configuration of your Profile in Weemo Portal, please edit the configuration file: 
@@ -66,6 +72,7 @@ Replace your "ENTER YOUR KEY HERE" by your mobileAppId provided by Weemo:
 </resources>
 ```
 
+
 ### Step 5 - Run the project 
 
 This project cannnot run in an Emulator, please run-it on your Android mobile ARM Device.
@@ -73,3 +80,10 @@ This project cannnot run in an Emulator, please run-it on your Android mobile AR
 <p align="center">
 <img src="http://docs.weemo.com/img/android_run.png">
 </p>
+
+
+## Changelog
+
+This helper project is updated on an ad-hoc basis and does not necessary follows the relase agenda of the SDK.  
+The best changelog is therefore the [commit log](https://github.com/weemo/Android-SDK/commits/master).  
+However, a simple changelog is maintained as part of the [SDK changelog](https://github.com/weemo/Android-SDK/blob/master/CHANGELOG.md).

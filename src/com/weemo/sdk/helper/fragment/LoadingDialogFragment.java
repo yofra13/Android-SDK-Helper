@@ -1,4 +1,4 @@
-package com.weemo.sdk.helper;
+package com.weemo.sdk.helper.fragment;
 
 import android.app.Dialog;
 import android.app.DialogFragment;

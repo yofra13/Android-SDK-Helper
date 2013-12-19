@@ -11,6 +11,7 @@ import android.app.Application;
 import com.github.anrwatchdog.ANRWatchDog;
 import com.github.nativehandler.NativeCrashHandler;
 import com.weemo.sdk.Weemo;
+import com.weemo.sdk.helper.util.AttachmentEmailACRASender;
 
 /*
  * This is the ACRA configuration anotation.
@@ -79,7 +80,7 @@ public class HelperApplication extends Application {
 		
 		// ACRA startup
 		ACRA.init(this);
-		ACRA.getErrorReporter().setReportSender(new AttachmentEmailSender(this));
+		ACRA.getErrorReporter().setReportSender(new AttachmentEmailACRASender(this));
 
 		// Starts the ANR WatchDog
 		watchDog.start();

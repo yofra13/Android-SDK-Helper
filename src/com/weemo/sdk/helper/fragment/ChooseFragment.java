@@ -1,6 +1,5 @@
-package com.weemo.sdk.helper;
+package com.weemo.sdk.helper.fragment;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -24,6 +23,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.weemo.sdk.helper.DemoAccounts;
+import com.weemo.sdk.helper.R;
 
 /*
  * This is a simple fragment that allows the user of the application to chose from a list
@@ -54,18 +56,7 @@ public class ChooseFragment extends DialogFragment {
 	private @Nullable EditText input;
 	private @Nullable Button go;
 	
-	@SuppressWarnings("serial")
-	public static final Map<String, String> ACCOUNTS = Collections.unmodifiableMap(new LinkedHashMap<String, String>() {
-		{
-			put("k.tenma", "Kenzo Tenma");
-			put("fortner-n", "Nina Fortner");
-			put("runge_h@bka.de", "Heinrich Runge");
-			put("ev@heinman", "Eva Heinman");
-			put("{liebert:j}", "Johan Liebert");
-		}
-	});
-	
-	private Map<String, String> accounts = new LinkedHashMap<String, String>(ACCOUNTS);
+	private Map<String, String> accounts = new LinkedHashMap<String, String>(DemoAccounts.ACCOUNTS);
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -147,5 +138,8 @@ public class ChooseFragment extends DialogFragment {
 		if (enabled)
 			input.setFocusableInTouchMode(enabled);
 	}
-	
+
+	public void setButtonText(String text) {
+		go.setText(text);
+	}
 }

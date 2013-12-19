@@ -12,6 +12,7 @@
     <string name="ask_title">Display name</string>
     <string name="unreachable">User ID unreachable</string>
     <string name="disconnect">Disconnect</string>
+    <string name="checked_mode">Checked mode</string>
     <string name="content_description_mute_sound">Mute or un-mute sound</string>
     <string name="content_description_mute_mic">Mute or un-mute microphone</string>
     <string name="content_description_video">Show or stop showing your video</string>
@@ -29,5 +30,10 @@
     	all you have to do is click OK.
    	</string>
     <string name="crash_dialog_ok_toast">Thank you !</string>
+    <string name="enter_appid">Please enter your Weemo AppID</string>
+    <string name="weemo_appid">Weemo Application Identifier</string>
+    <string name="core_dump">Core dump</string>
+    <string name="error">Error</string>
+    <string name="close_app">Close the application</string>
 
 </resources>

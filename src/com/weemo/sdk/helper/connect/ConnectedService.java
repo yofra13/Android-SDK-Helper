@@ -1,4 +1,4 @@
-package com.weemo.sdk.helper;
+package com.weemo.sdk.helper.connect;
 
 import java.io.IOException;
 
@@ -19,6 +19,7 @@ import com.weemo.sdk.WeemoEngine;
 import com.weemo.sdk.event.WeemoEventListener;
 import com.weemo.sdk.event.call.CallCreatedEvent;
 import com.weemo.sdk.event.call.CallStatusChangedEvent;
+import com.weemo.sdk.helper.R;
 import com.weemo.sdk.helper.call.IncomingActivity;
 import com.weemo.sdk.helper.contacts.ContactsActivity;
 

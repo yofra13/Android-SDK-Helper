@@ -1,5 +1,7 @@
 package com.weemo.sdk.helper.contacts;
 
+import org.acra.ACRA;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
@@ -18,12 +20,15 @@ import com.weemo.sdk.WeemoEngine;
 import com.weemo.sdk.event.WeemoEventListener;
 import com.weemo.sdk.event.call.CallStatusChangedEvent;
 import com.weemo.sdk.event.global.CanCreateCallChangedEvent;
-import com.weemo.sdk.helper.ChooseFragment;
-import com.weemo.sdk.helper.ChooseFragment.ChooseListener;
-import com.weemo.sdk.helper.ConnectedService;
+import com.weemo.sdk.helper.DemoAccounts;
 import com.weemo.sdk.helper.R;
 import com.weemo.sdk.helper.call.CallActivity;
 import com.weemo.sdk.helper.call.CallFragment;
+import com.weemo.sdk.helper.connect.ConnectedService;
+import com.weemo.sdk.helper.fragment.ChooseFragment;
+import com.weemo.sdk.helper.fragment.ChooseFragment.ChooseListener;
+import com.weemo.sdk.helper.util.ReportException;
+import com.weemo.sdk.helper.util.UIUtils;
 
 /*
  * This is the main activity when the user is connected.
@@ -41,12 +46,16 @@ import com.weemo.sdk.helper.call.CallFragment;
 public class ContactsActivity extends Activity implements ChooseListener {
 
 	private static final String LOGTAG = "ContactsActivity";
+	
+	private boolean checkedMode = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_contacts);
+		
+		UIUtils.forceOverflowMenu(this);
 
 		if (savedInstanceState == null) {
 			// Ensure that Weemo is initialized
@@ -77,14 +86,14 @@ public class ContactsActivity extends Activity implements ChooseListener {
 			// Display the contact fragment
 			getFragmentManager()
 				.beginTransaction()
-				.add(R.id.contact_list, ChooseFragment.newInstance(getString(R.string.check), displayName))
+				.add(R.id.contact_list, ChooseFragment.newInstance(getResources().getString(checkedMode ? R.string.check : R.string.call), displayName))
 				.commit();
 		
 			// If we need to ask for the display name, shows the apropriate popup
 			if (askForDisplayName) {
 				String defaultName = "";
-				if (ChooseFragment.ACCOUNTS.containsKey(uid))
-					defaultName = ChooseFragment.ACCOUNTS.get(uid);
+				if (DemoAccounts.ACCOUNTS.containsKey(uid))
+					defaultName = DemoAccounts.ACCOUNTS.get(uid);
 	            AskDisplayNameDialogFragment.newInstance(defaultName).show(getFragmentManager(), null);
 			}
 			
@@ -169,16 +178,52 @@ public class ContactsActivity extends Activity implements ChooseListener {
 
 		super.onDestroy();
 	}
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putBoolean("checkedMode", checkedMode);
+	}
+	
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		checkedMode = savedInstanceState.getBoolean("checkedMode", false);
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+		menu.add(R.string.disconnect)
+			.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				@Override public boolean onMenuItemClick(MenuItem item) {
+					Weemo.disconnect();
+					return true;
+				}
+			})
+		;
+
+		menu.add(R.string.checked_mode)
+			.setCheckable(true)
+			.setChecked(checkedMode)
+			.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				@Override public boolean onMenuItemClick(MenuItem item) {
+					checkedMode = !item.isChecked();
+					item.setChecked(checkedMode);
+					String text = getResources().getString(item.isChecked() ? R.string.check : R.string.call);
+					((ChooseFragment) getFragmentManager().findFragmentById(R.id.contact_list)).setButtonText(text);
+					return true;
+				}
+			})
+		;
 		
-		menu.add(R.string.disconnect).setOnMenuItemClickListener(new OnMenuItemClickListener() {
-			@Override public boolean onMenuItemClick(MenuItem item) {
-				Weemo.disconnect();
-				return true;
-			}
-		});
+		menu.add(R.string.core_dump)
+			.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+				@Override public boolean onMenuItemClick(MenuItem item) {
+					ACRA.getErrorReporter().handleSilentException(new ReportException());
+					return true;
+				}
+			})
+		;
 		
 		return super.onCreateOptionsMenu(menu);
 	}
@@ -188,7 +233,13 @@ public class ContactsActivity extends Activity implements ChooseListener {
 	 */
 	@Override
 	public void onChoose(String contactId) {
-		ContactCheckDialogFragment.newInstance(contactId).show(getFragmentManager(), null);
+		if (checkedMode)
+			ContactCheckDialogFragment.newInstance(contactId).show(getFragmentManager(), null);
+		else {
+			WeemoEngine weemo = Weemo.instance();
+			assert weemo != null;
+			weemo.createCall(contactId);
+		}
 	}
 
 	/*

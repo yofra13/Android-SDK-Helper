@@ -1,4 +1,4 @@
-package com.weemo.sdk.helper;
+package com.weemo.sdk.helper.util;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,11 +20,11 @@ import android.net.Uri;
 /*
  * This is used by ACRA to generate a (crash) report
  */
-public class AttachmentEmailSender implements ReportSender {
+public class AttachmentEmailACRASender implements ReportSender {
 
 	private final Application ctx;
 
-	public AttachmentEmailSender(Application ctx) {
+	public AttachmentEmailACRASender(Application ctx) {
 		this.ctx = ctx;
 	}
 

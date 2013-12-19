@@ -28,12 +28,19 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo" >
         <activity
-            android:name="com.weemo.sdk.helper.ConnectActivity"
+            android:name="com.weemo.sdk.helper.connect.ConnectActivity"
             android:theme="@android:style/Theme.Holo.Light" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="weemo-helper" />
             </intent-filter>
         </activity>
         <activity
@@ -64,7 +71,7 @@
             android:stateNotNeeded="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <service android:name=".ConnectedService" >
+        <service android:name="com.weemo.sdk.helper.connect.ConnectedService" >
         </service>
     </application>
 
