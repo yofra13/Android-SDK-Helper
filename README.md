@@ -48,7 +48,7 @@ Follow instruction on projcet website:  [http://findbugs.sourceforge.net/](http:
 
 ### Step 3 - Import the project in Eclipse 
 
-Import the Helper project in Eclipse as an "Existing Project"
+Import the `WeemoSD_Helper` and `WeemoSDK_Lib` project in Eclipse as an "Existing Project"
 
 <p align="center">
 <img src="http://docs.weemo.com./img/android_build.png">
